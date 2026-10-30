@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2a47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Fleet Dispatch Board</title>
+<style>
+  html,body{margin:0;height:100%;background:#0f2a47;font-family:system-ui,sans-serif;color:#fff}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff;padding-top:env(safe-area-inset-top)}
+  #setup{display:none;box-sizing:border-box;min-height:100%;padding:24px;max-width:480px;margin:auto}
+  #setup input{width:100%;box-sizing:border-box;padding:12px;font-size:16px;border-radius:8px;border:0;margin:10px 0}
+  #setup button{width:100%;padding:12px;font-size:16px;font-weight:600;border:0;border-radius:8px;background:#f5a623;color:#0f2a47}
+  #off{display:none;position:fixed;inset:0;background:#0f2a47;padding:24px;text-align:center}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div id="setup">
+  <h2>Fleet Dispatch Board</h2>
+  <p>Paste your Apps Script Web app link (ends with /exec). You only do this once.</p>
+  <input id="url" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec">
+  <button id="save" type="button">Open app</button>
+</div>
+<div id="off"><h2>No internet</h2><p>Connect to the internet and reopen the app.</p><button onclick="location.reload()">Try again</button></div>
+<script>
+(function () {
+  var url = window.FLEET_URL || '';
+  try { url = url || localStorage.getItem('fleetUrl') || ''; } catch (e) {}
+  function open(u) {
+    document.getElementById('setup').style.display = 'none';
+    var f = document.createElement('iframe');
+    f.src = u; f.allow = 'camera; microphone; geolocation; clipboard-write; fullscreen';
+    document.body.appendChild(f);
+  }
+  if (url) open(url); else document.getElementById('setup').style.display = 'block';
+  document.getElementById('save').onclick = function () {
+    var v = document.getElementById('url').value.trim();
+    if (!/^https:\/\/script\.google\.com\/.+/.test(v)) { alert('Please paste the full Web app link.'); return; }
+    try { localStorage.setItem('fleetUrl', v); } catch (e) {}
+    open(v);
+  };
+  function net() { document.getElementById('off').style.display = navigator.onLine ? 'none' : 'block'; }
+  window.addEventListener('online', net); window.addEventListener('offline', net); net();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+})();
+</script>
+</body>
+</html>
